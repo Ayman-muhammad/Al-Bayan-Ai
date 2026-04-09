@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Analytics } from '@vercel/analytics/react';
 import { SearchHero } from './components/SearchHero';
 import { VerseCard } from './components/VerseCard';
 import { fetchVerse, fetchDailyVerse, Verse } from './services/quran';
@@ -264,6 +265,7 @@ export default function App() {
           </p>
         </div>
       </footer>
+      <Analytics />
     </div>
   );
 }
