@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BookOpen, Sparkles, ChevronDown, ChevronUp, Quote, RefreshCw } from 'lucide-react';
+import { BookOpen, Sparkles, ChevronDown, ChevronUp, Quote, RefreshCw, Share2, Bookmark, BookmarkCheck } from 'lucide-react';
 import { Verse } from '../services/quran';
 import { getContextualTafseer } from '../services/gemini';
 import { cn } from '../lib/utils';
@@ -10,9 +10,18 @@ interface VerseCardProps {
   query?: string;
   relevanceReason?: string;
   index: number;
+  isBookmarked?: boolean;
+  onBookmarkToggle?: (verse: Verse) => void;
 }
 
-export const VerseCard: React.FC<VerseCardProps> = ({ verse, query, relevanceReason, index }) => {
+export const VerseCard: React.FC<VerseCardProps> = ({ 
+  verse, 
+  query, 
+  relevanceReason, 
+  index, 
+  isBookmarked = false,
+  onBookmarkToggle 
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [tafseer, setTafseer] = useState<{ english: string; arabic: string; references: string[] } | null>(null);
   const [isLoadingTafseer, setIsLoadingTafseer] = useState(false);
@@ -31,6 +40,27 @@ export const VerseCard: React.FC<VerseCardProps> = ({ verse, query, relevanceRea
       }
     } else {
       setIsExpanded(!isExpanded);
+    }
+  };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: `Al-Bayan AI: ${verse.surahName} ${verse.surahNumber}:${verse.ayahNumber}`,
+      text: `${verse.text}\n\n"${verse.translation}"\n\nShared via Al-Bayan AI`,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        // Ignore abort errors
+        if ((err as Error).name !== 'AbortError') {
+          console.error('Error sharing:', err);
+        }
+      }
+    } else {
+      alert(`Verse: ${verse.surahName} ${verse.surahNumber}:${verse.ayahNumber}\n\n${verse.text}\n\n"${verse.translation}"`);
     }
   };
 
@@ -69,6 +99,25 @@ export const VerseCard: React.FC<VerseCardProps> = ({ verse, query, relevanceRea
                     <Sparkles size={12} />
                   )}
                   <span>Tafseer</span>
+                </button>
+                <button
+                  onClick={handleShare}
+                  className="flex items-center space-x-1 text-slate-500 bg-slate-50 px-3 py-1 rounded-full text-xs font-bold hover:bg-slate-100 transition-colors border border-slate-100"
+                >
+                  <Share2 size={12} />
+                  <span>Share</span>
+                </button>
+                <button
+                  onClick={() => onBookmarkToggle?.(verse)}
+                  className={cn(
+                    "flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-bold transition-colors border",
+                    isBookmarked 
+                      ? "text-amber-600 bg-amber-50 border-amber-100" 
+                      : "text-slate-500 bg-slate-50 border-slate-100 hover:bg-slate-100"
+                  )}
+                >
+                  {isBookmarked ? <BookmarkCheck size={12} /> : <Bookmark size={12} />}
+                  <span>{isBookmarked ? 'Saved' : 'Save'}</span>
                 </button>
               </div>
             </div>
