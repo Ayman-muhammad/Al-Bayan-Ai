@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", serif;
+  --font-arabic: "Amiri", serif;
+}
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 font-sans antialiased;
+  }
+}
+
+.arabic-text {
+  font-family: var(--font-arabic);
+  direction: rtl;
+}
+
+.glass-panel {
+  @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl;
+}
+
+.gradient-bg {
+  background: radial-gradient(circle at top right, #ecfdf5 0%, transparent 40%),
+              radial-gradient(circle at bottom left, #f1f5f9 0%, transparent 40%);
+}

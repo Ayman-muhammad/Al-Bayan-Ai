@@ -1,0 +1,5 @@
+{
+  "name": "Al-Bayan AI",
+  "description": "A modern Quran companion focusing on contextual understanding, thematic search, and AI-powered reflections.",
+  "requestFramePermissions": ["camera", "microphone"]
+}
