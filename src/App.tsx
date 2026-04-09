@@ -6,6 +6,7 @@ import { fetchVerse, fetchDailyVerse, Verse } from './services/quran';
 import { findVersesByTheme, SemanticResult } from './services/gemini';
 import { Sparkles, RefreshCw, BookMarked, Info } from 'lucide-react';
 import { cn } from './lib/utils';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 interface SearchResult extends Verse {
   relevanceReason: string;
@@ -264,6 +265,7 @@ export default function App() {
           </p>
         </div>
       </footer>
+      <SpeedInsights />
     </div>
   );
 }
