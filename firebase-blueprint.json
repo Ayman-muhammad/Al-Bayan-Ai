@@ -1,0 +1,56 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user profile information and app usage stats.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique user ID from Firebase Auth." },
+        "email": { "type": "string", "format": "email", "description": "User's email address." },
+        "displayName": { "type": "string", "description": "User's display name." },
+        "photoURL": { "type": "string", "description": "User's profile picture URL." },
+        "lastLogin": { "type": "string", "format": "date-time", "description": "Timestamp of the last login." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of account creation." }
+      },
+      "required": ["uid", "email"]
+    },
+    "Bookmark": {
+      "title": "Bookmarked Verse",
+      "description": "A verse saved by the user.",
+      "type": "object",
+      "properties": {
+        "surahNumber": { "type": "number" },
+        "ayahNumber": { "type": "number" },
+        "surahName": { "type": "string" },
+        "text": { "type": "string" },
+        "translation": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["surahNumber", "ayahNumber", "text", "translation"]
+    },
+    "RecentSearch": {
+      "title": "Recent Search Query",
+      "description": "A search query performed by the user.",
+      "type": "object",
+      "properties": {
+        "query": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["query", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile documents."
+    },
+    "/users/{userId}/bookmarks/{bookmarkId}": {
+      "schema": "Bookmark",
+      "description": "User's saved verses."
+    },
+    "/users/{userId}/recentSearches/{searchId}": {
+      "schema": "RecentSearch",
+      "description": "User's search history."
+    }
+  }
+}

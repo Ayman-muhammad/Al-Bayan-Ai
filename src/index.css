@@ -9,7 +9,11 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 font-sans antialiased;
+    @apply bg-[#fdfbf7] text-slate-900 font-sans antialiased transition-colors duration-300;
+  }
+
+  body.dark {
+    @apply bg-[#041410] text-slate-50;
   }
 }
 
@@ -19,10 +23,52 @@
 }
 
 .glass-panel {
-  @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl;
+  @apply bg-white/95 backdrop-blur-xl border border-amber-200/40 shadow-[0_8px_32px_rgba(180,140,40,0.06)];
+}
+
+.dark .glass-panel {
+  @apply bg-[#06201a]/90 backdrop-blur-xl border-emerald-800/60 shadow-[0_8px_32px_rgba(0,0,0,0.6)];
 }
 
 .gradient-bg {
-  background: radial-gradient(circle at top right, #ecfdf5 0%, transparent 40%),
-              radial-gradient(circle at bottom left, #f1f5f9 0%, transparent 40%);
+  background: 
+    radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(245, 158, 11, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(245, 158, 11, 0.08) 0px, transparent 50%),
+    #fdfbf7;
+  position: relative;
 }
+
+.gradient-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l5.878 18.09h19.022l-15.39 11.18 5.878 18.09-15.389-11.18-15.39 11.18 5.878-18.09-15.39-11.18h19.022L30 0z' fill='%23d97706' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.dark .gradient-bg {
+  background: 
+    radial-gradient(at 0% 0%, rgba(20, 184, 166, 0.2) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(251, 191, 36, 0.12) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(20, 184, 166, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(251, 191, 36, 0.1) 0px, transparent 50%),
+    #041410;
+}
+
+.dark .gradient-bg::before {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l5.878 18.09h19.022l-15.39 11.18 5.878 18.09-15.389-11.18-15.39 11.18 5.878-18.09-15.39-11.18h19.022L30 0z' fill='%2310b981' fill-opacity='0.04' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+

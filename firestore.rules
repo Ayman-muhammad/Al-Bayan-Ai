@@ -1,0 +1,117 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId} (matches request.auth.uid)
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required, email format)
+    //   - displayName: string (optional)
+    //   - photoURL: string (optional)
+    //   - lastLogin: timestamp (required)
+    //   - createdAt: timestamp (required, immutable)
+    //
+    // Collection: users/{userId}/bookmarks
+    // Document ID: {surahNumber}_{ayahNumber}
+    // Fields:
+    //   - surahNumber: number (required)
+    //   - ayahNumber: number (required)
+    //   - surahName: string (required)
+    //   - text: string (required)
+    //   - translation: string (required)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: users/{userId}/recentSearches
+    // Document ID: auto-generated
+    // Fields:
+    //   - query: string (required, max 200 chars)
+    //   - timestamp: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isRecent(ts) {
+      return ts is timestamp && ts > request.time - duration.value(5, 'm') && ts <= request.time;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'lastLogin', 'createdAt']) &&
+             data.uid == request.auth.uid &&
+             isValidEmail(data.email) &&
+             data.lastLogin is timestamp &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidBookmark(data) {
+      return data.keys().hasAll(['surahNumber', 'ayahNumber', 'surahName', 'text', 'translation', 'createdAt']) &&
+             data.surahNumber is number &&
+             data.ayahNumber is number &&
+             data.surahName is string && data.surahName.size() < 100 &&
+             data.text is string && data.text.size() < 5000 &&
+             data.translation is string && data.translation.size() < 5000 &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidRecentSearch(data) {
+      return data.keys().hasAll(['query', 'timestamp']) &&
+             data.query is string && data.query.size() > 0 && data.query.size() <= 200 &&
+             data.timestamp is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // User profiles
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && isRecent(request.resource.data.createdAt);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && 
+                    request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    // User bookmarks
+    match /users/{userId}/bookmarks/{bookmarkId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidBookmark(request.resource.data);
+      allow update: if isOwner(userId) && isValidBookmark(request.resource.data) &&
+                    request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isOwner(userId);
+    }
+
+    // User recent searches
+    match /users/{userId}/recentSearches/{searchId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidRecentSearch(request.resource.data);
+      allow delete: if isOwner(userId);
+    }
+  }
+}
