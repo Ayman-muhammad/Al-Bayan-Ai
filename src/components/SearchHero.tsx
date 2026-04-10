@@ -134,7 +134,7 @@ export const SearchHero: React.FC<SearchHeroProps> = ({ onSearch, isLoading, rec
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={selectedImage ? (language === 'en.sahih' ? "Describe what you see..." : t.search) : (language === 'en.sahih' ? "Seeking guidance?" : t.search)}
+                placeholder={selectedImage ? (t.describeImage || "Describe what you see...") : (t.seekingGuidance || "Seeking guidance?")}
                 className="flex-1 bg-transparent border-none focus:ring-0 text-base md:text-xl text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 py-3 md:py-4"
                 disabled={isLoading}
               />

@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SearchHero } from './components/SearchHero';
 import { VerseCard } from './components/VerseCard';
+import { HifzChallenge } from './components/HifzChallenge';
 import { fetchVerse, fetchDailyVerse, Verse, LANGUAGES } from './services/quran';
 import { findVersesByTheme, SemanticResult } from './services/gemini';
-import { Sparkles, RefreshCw, BookMarked, Info, Search, ChevronLeft, LogIn, LogOut, User as UserIcon, LayoutDashboard, History, Languages, Moon, Sun, Handshake, X } from 'lucide-react';
+import { Sparkles, RefreshCw, BookMarked, Info, Search, ChevronLeft, LogIn, LogOut, User as UserIcon, LayoutDashboard, History, Languages, Moon, Sun, Handshake, X, Trophy, Compass, LayoutGrid } from 'lucide-react';
 import { cn } from './lib/utils';
 import { auth, db, signInWithGoogle, logout, handleFirestoreError, OperationType } from './firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
@@ -23,7 +24,7 @@ export default function App() {
   const [currentQuery, setCurrentQuery] = useState('');
   const [dailyVerse, setDailyVerse] = useState<Verse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<'search' | 'bookmarks' | 'dashboard' | 'history'>('search');
+  const [view, setView] = useState<'search' | 'bookmarks' | 'dashboard' | 'history' | 'hifz'>('search');
   const [bookmarks, setBookmarks] = useState<Verse[]>([]);
   const [recentSearches, setRecentSearches] = useState<{id: string, query: string, timestamp: any}[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState('en.sahih');
@@ -219,62 +220,79 @@ export default function App() {
             {/* Theme Toggle */}
             <button 
               onClick={() => setIsDarkMode(!isDarkMode)}
-              className="relative w-14 h-7 rounded-full bg-amber-100 dark:bg-emerald-900/40 transition-all duration-500 focus:outline-none shrink-0 group shadow-inner border border-amber-200/50 dark:border-emerald-800/50"
+              className="relative w-16 h-8 rounded-full bg-amber-100 dark:bg-emerald-900/40 transition-all duration-500 focus:outline-none shrink-0 group shadow-inner border border-amber-200/50 dark:border-emerald-800/50 overflow-hidden"
               title={t.toggleDarkMode}
             >
-              <div className={cn(
-                "absolute top-1 left-1 w-5 h-5 rounded-full transition-all duration-500 flex items-center justify-center shadow-md transform",
-                isDarkMode ? "translate-x-7 bg-emerald-500 rotate-[360deg]" : "bg-amber-500 rotate-0"
-              )}>
-                {isDarkMode ? (
-                  <Moon size={12} className="text-white fill-white" />
-                ) : (
-                  <Sun size={12} className="text-white fill-white" />
+              <motion.div 
+                animate={{ x: isDarkMode ? 32 : 4 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                className={cn(
+                  "absolute top-1 w-6 h-6 rounded-full flex items-center justify-center shadow-lg z-10",
+                  isDarkMode ? "bg-emerald-500" : "bg-amber-500"
                 )}
-              </div>
-              <div className="absolute inset-0 flex justify-between items-center px-2 pointer-events-none opacity-40">
-                <Sun size={10} className={cn("transition-opacity text-amber-600", isDarkMode ? "opacity-100" : "opacity-0")} />
-                <Moon size={10} className={cn("transition-opacity text-emerald-400", isDarkMode ? "opacity-0" : "opacity-100")} />
+              >
+                {isDarkMode ? (
+                  <Moon size={14} className="text-white fill-white" />
+                ) : (
+                  <Sun size={14} className="text-white fill-white" />
+                )}
+              </motion.div>
+              <div className="absolute inset-0 flex justify-between items-center px-2.5 pointer-events-none">
+                <Sun size={12} className={cn("transition-all duration-500", isDarkMode ? "text-amber-600 opacity-100 scale-100" : "opacity-0 scale-50")} />
+                <Moon size={12} className={cn("transition-all duration-500", isDarkMode ? "opacity-0 scale-50" : "text-emerald-400 opacity-100 scale-100")} />
               </div>
             </button>
 
             <button 
               onClick={() => setView('search')}
               className={cn(
-                "transition-colors",
-                view === 'search' ? "text-emerald-700 dark:text-emerald-400" : "text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400"
+                "transition-all duration-300 p-2 rounded-xl",
+                view === 'search' ? "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 shadow-sm" : "text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/10"
               )}
+              title={t.search}
             >
               <Search size={20} />
             </button>
             <button 
+              onClick={() => setView('hifz')}
+              className={cn(
+                "transition-all duration-300 p-2 rounded-xl relative",
+                view === 'hifz' ? "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 shadow-sm" : "text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/10"
+              )}
+              title={t.hifzChallenge}
+            >
+              <Trophy size={20} />
+            </button>
+            <button 
               onClick={() => setView('bookmarks')}
               className={cn(
-                "transition-colors relative",
-                view === 'bookmarks' ? "text-emerald-700 dark:text-emerald-400" : "text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400"
+                "transition-all duration-300 p-2 rounded-xl relative",
+                view === 'bookmarks' ? "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 shadow-sm" : "text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/10"
               )}
+              title={t.bookmarks}
             >
               <BookMarked size={20} />
               {bookmarks.length > 0 && (
-                <span className="absolute -top-2 -right-2 bg-emerald-600 dark:bg-emerald-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-[#fdfbf7] dark:border-[#041410]">
+                <span className="absolute -top-1 -right-1 bg-emerald-600 dark:bg-emerald-500 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-[#fdfbf7] dark:border-[#041410]">
                   {bookmarks.length}
                 </span>
               )}
             </button>
             {user ? (
-              <>
+              <div className="flex items-center space-x-1 md:space-x-4">
                 <button 
                   onClick={() => setView('dashboard')}
                   className={cn(
-                    "transition-colors",
-                    view === 'dashboard' ? "text-emerald-700 dark:text-emerald-400" : "text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400"
+                    "transition-all duration-300 p-2 rounded-xl",
+                    view === 'dashboard' ? "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 shadow-sm" : "text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/10"
                   )}
+                  title={t.dashboard}
                 >
                   <LayoutDashboard size={20} />
                 </button>
                 <button 
                   onClick={logout}
-                  className="text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                  className="text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 transition-colors p-2"
                   title={t.logout}
                 >
                   <LogOut size={20} />
@@ -282,7 +300,7 @@ export default function App() {
                 <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-amber-200 dark:border-emerald-500/50 shrink-0 shadow-sm">
                   <img src={user.photoURL || ''} alt={user.displayName || ''} referrerPolicy="no-referrer" />
                 </div>
-              </>
+              </div>
             ) : (
               <button 
                 onClick={signInWithGoogle}
@@ -479,28 +497,61 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="glass-panel p-6 md:p-8 rounded-3xl border-amber-200/30 dark:border-emerald-800/40">
-                <h3 className="text-xl font-serif font-bold text-emerald-900 dark:text-emerald-50 mb-6 flex items-center gap-2">
-                  <History size={20} className="text-amber-600 dark:text-amber-400" />
-                  {t.recentHistory}
-                </h3>
-                <div className="space-y-4">
-                  {recentSearches.length === 0 ? (
-                    <p className="text-slate-600 dark:text-slate-300 italic">{t.noHistory}</p>
-                  ) : (
-                    recentSearches.map((s) => (
-                      <div 
-                        key={s.id} 
-                        className="flex items-center justify-between p-4 bg-amber-50/30 dark:bg-emerald-900/10 rounded-2xl hover:bg-amber-50 dark:hover:bg-emerald-900/20 transition-colors cursor-pointer group border border-amber-100/50 dark:border-emerald-800/30"
-                        onClick={() => handleSearch(s.query)}
-                      >
-                        <span className="text-slate-800 dark:text-slate-200 font-medium group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">"{s.query}"</span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400">
-                          {s.timestamp?.toDate ? s.timestamp.toDate().toLocaleDateString() : 'Just now'}
-                        </span>
-                      </div>
-                    ))
-                  )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 md:mb-12">
+                <div className="glass-panel p-6 md:p-8 rounded-3xl border-amber-200/30 dark:border-emerald-800/40">
+                  <h3 className="text-xl font-serif font-bold text-emerald-900 dark:text-emerald-50 mb-6 flex items-center gap-2">
+                    <History size={20} className="text-amber-600 dark:text-amber-400" />
+                    {t.recentHistory}
+                  </h3>
+                  <div className="space-y-4">
+                    {recentSearches.length === 0 ? (
+                      <p className="text-slate-600 dark:text-slate-300 italic">{t.noHistory}</p>
+                    ) : (
+                      recentSearches.map((s) => (
+                        <div 
+                          key={s.id} 
+                          className="flex items-center justify-between p-4 bg-amber-50/30 dark:bg-emerald-900/10 rounded-2xl hover:bg-amber-50 dark:hover:bg-emerald-900/20 transition-colors cursor-pointer group border border-amber-100/50 dark:border-emerald-800/30"
+                          onClick={() => handleSearch(s.query)}
+                        >
+                          <span className="text-slate-800 dark:text-slate-200 font-medium group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">"{s.query}"</span>
+                          <span className="text-xs text-slate-500 dark:text-slate-400">
+                            {s.timestamp?.toDate ? s.timestamp.toDate().toLocaleDateString() : 'Just now'}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="glass-panel p-6 md:p-8 rounded-3xl border-amber-200/30 dark:border-emerald-800/40 bg-gradient-to-br from-white to-amber-50/30 dark:from-emerald-900/10 dark:to-emerald-900/5">
+                    <h3 className="text-xl font-serif font-bold text-emerald-900 dark:text-emerald-50 mb-4 flex items-center gap-2">
+                      <Sparkles size={20} className="text-amber-500" />
+                      {t.dailySunnah}
+                    </h3>
+                    <p className="text-slate-700 dark:text-slate-300 italic mb-4">
+                      "The best of you are those who learn the Quran and teach it."
+                    </p>
+                    <div className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest">Sahih Bukhari</div>
+                  </div>
+
+                  <div className="glass-panel p-6 md:p-8 rounded-3xl border-amber-200/30 dark:border-emerald-800/40">
+                    <h3 className="text-xl font-serif font-bold text-emerald-900 dark:text-emerald-50 mb-4 flex items-center gap-2">
+                      <LayoutGrid size={20} className="text-emerald-600 dark:text-emerald-400" />
+                      {t.ummahGoal}
+                    </h3>
+                    <div className="mb-2 flex justify-between items-end">
+                      <span className="text-sm font-medium text-slate-600 dark:text-slate-400">1 Million Ayahs Read Today</span>
+                      <span className="text-xs font-bold text-emerald-600">84%</span>
+                    </div>
+                    <div className="w-full h-2 bg-slate-100 dark:bg-emerald-900/20 rounded-full overflow-hidden">
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: '84%' }}
+                        className="h-full bg-gradient-to-r from-emerald-500 to-amber-500"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>

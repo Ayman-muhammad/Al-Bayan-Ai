@@ -128,3 +128,25 @@ export async function fetchDailyVerse(langId: string = 'en.sahih'): Promise<Vers
     return null;
   }
 }
+
+export async function fetchRandomVerse(langId: string = 'en.sahih'): Promise<Verse> {
+  const randomAyah = Math.floor(Math.random() * 6236) + 1;
+  const res = await fetch(`https://api.alquran.cloud/v1/ayah/${randomAyah}/editions/quran-uthmani,${langId}`);
+  const data = await res.json();
+
+  if (data.code === 200) {
+    const arabicEdition = data.data.find((e: any) => e.edition.identifier === 'quran-uthmani');
+    const translationEdition = data.data.find((e: any) => e.edition.identifier === langId);
+    
+    return {
+      number: arabicEdition.number,
+      text: arabicEdition.text,
+      translation: translationEdition.text,
+      surahName: arabicEdition.surah.englishName,
+      surahNumber: arabicEdition.surah.number,
+      ayahNumber: arabicEdition.numberInSurah,
+      audio: {}
+    };
+  }
+  throw new Error("Failed to fetch random verse");
+}
